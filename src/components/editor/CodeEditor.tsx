@@ -2,23 +2,50 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Play, Save, Trash2, Settings } from "lucide-react";
+import { Play, Save, Trash2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
+import type { ProgrammingLanguage } from "./LanguageSelector";
 
 interface CodeEditorProps {
   onRun: (code: string) => void;
   onClear: () => void;
+  language: ProgrammingLanguage;
 }
 
-const CodeEditor: React.FC<CodeEditorProps> = ({ onRun, onClear }) => {
-  const [code, setCode] = useState<string>(
-    '// Welcome to CodeBuddy!\n// Try running this sample program:\n\nfunction greet(name) {\n  return "Hello, " + name + "!";\n}\n\nconst message = greet("World");\nconsole.log(message);\n\n// You can also get user input:\n// const name = prompt("What\'s your name?");\n// console.log("Nice to meet you, " + name + "!");'
-  );
+const getDefaultCodeForLanguage = (language: ProgrammingLanguage): string => {
+  switch (language) {
+    case 'javascript':
+      return '// Welcome to JavaScript!\n\nfunction greet(name) {\n  return "Hello, " + name + "!";\n}\n\nconst message = greet("World");\nconsole.log(message);\n\n// You can also get user input:\n// const name = prompt("What\'s your name?");\n// console.log("Nice to meet you, " + name + "!");';
+    
+    case 'python':
+      return '# Welcome to Python!\n\ndef greet(name):\n    return "Hello, " + name + "!"\n\nmessage = greet("World")\nprint(message)  # output: Hello, World!\n\n# You can also get user input:\n# name = input("What\'s your name?")\n# print("Nice to meet you, " + name + "!")';
+    
+    case 'cpp':
+      return '// Welcome to C++!\n\n#include <iostream>\n#include <string>\nusing namespace std;\n\nstring greet(string name) {\n    return "Hello, " + name + "!";\n}\n\nint main() {\n    string message = greet("World");\n    cout << message << endl;  // output: Hello, World!\n    \n    // You can also get user input:\n    // string name;\n    // cout << "What\'s your name? ";\n    // cin >> name;\n    // cout << "Nice to meet you, " << name << "!";\n    \n    return 0;\n}';
+    
+    case 'c':
+      return '// Welcome to C!\n\n#include <stdio.h>\n#include <string.h>\n\nvoid greet(char* name, char* result) {\n    strcpy(result, "Hello, ");\n    strcat(result, name);\n    strcat(result, "!");\n}\n\nint main() {\n    char message[100];\n    greet("World", message);\n    printf("%s\\n", message);  // output: Hello, World!\n    \n    // You can also get user input:\n    // char name[50];\n    // printf("What\'s your name? ");\n    // scanf("%s", name);\n    // printf("Nice to meet you, %s!\\n", name);\n    \n    return 0;\n}';
+    
+    case 'csharp':
+      return '// Welcome to C#!\n\nusing System;\n\nclass Program {\n    static string Greet(string name) {\n        return "Hello, " + name + "!";\n    }\n    \n    static void Main() {\n        string message = Greet("World");\n        Console.WriteLine(message);  // output: Hello, World!\n        \n        // You can also get user input:\n        // Console.Write("What\'s your name? ");\n        // string name = Console.ReadLine();\n        // Console.WriteLine("Nice to meet you, " + name + "!");\n    }\n}';
+    
+    default:
+      return '// Select a language to get started!';
+  }
+};
+
+const CodeEditor: React.FC<CodeEditorProps> = ({ onRun, onClear, language }) => {
+  const [code, setCode] = useState<string>(getDefaultCodeForLanguage(language));
   const [lineNumbers, setLineNumbers] = useState<number[]>([]);
   const [activeLineNumber, setActiveLineNumber] = useState<number | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
+
+  // Update code when language changes
+  useEffect(() => {
+    setCode(getDefaultCodeForLanguage(language));
+  }, [language]);
 
   // Generate line numbers whenever code changes
   useEffect(() => {
@@ -32,7 +59,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onRun, onClear }) => {
 
   const handleRunCode = () => {
     toast({
-      title: "Running code...",
+      title: `Running ${language} code...`,
       description: "Your program is now executing!",
       duration: 2000,
     });
@@ -52,7 +79,17 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onRun, onClear }) => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "my-code.js";
+      
+      // Set appropriate file extension based on language
+      const fileExtensions: Record<ProgrammingLanguage, string> = {
+        javascript: 'js',
+        python: 'py',
+        cpp: 'cpp',
+        c: 'c',
+        csharp: 'cs'
+      };
+      
+      a.download = `my-code.${fileExtensions[language]}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -60,7 +97,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onRun, onClear }) => {
       
       toast({
         title: "Code saved!",
-        description: "Your code has been downloaded as my-code.js",
+        description: `Your code has been downloaded as my-code.${fileExtensions[language]}`,
         duration: 2000,
       });
     } catch (error) {
@@ -98,7 +135,12 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onRun, onClear }) => {
   return (
     <div className="editor-container h-full flex flex-col rounded-lg overflow-hidden bg-editor-bg text-editor-text border border-border">
       <div className="editor-toolbar p-3 bg-muted/30 flex justify-between items-center border-b border-border">
-        <div className="font-medium text-sm">CodeBuddy Editor</div>
+        <div className="font-medium text-sm flex items-center">
+          <span className="bg-primary/20 text-primary px-2 py-0.5 rounded text-xs font-mono mr-2">
+            {language.toUpperCase()}
+          </span>
+          CodeBuddy Editor
+        </div>
         <div className="space-x-2 flex items-center">
           <TooltipProvider>
             <Tooltip>

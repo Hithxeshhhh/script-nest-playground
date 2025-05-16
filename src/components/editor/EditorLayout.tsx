@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import CodeEditor from './CodeEditor';
 import Terminal from './Terminal';
-import FileExplorer from './FileExplorer';
 import CodingHints from './CodingHints';
+import LanguageSelector, { ProgrammingLanguage } from './LanguageSelector';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/components/ui/use-toast';
@@ -14,6 +14,7 @@ const EditorLayout: React.FC = () => {
   const [waitingForInput, setWaitingForInput] = useState<boolean>(false);
   const [currentCode, setCurrentCode] = useState<string>('');
   const [inputQueue, setInputQueue] = useState<string[]>([]);
+  const [selectedLanguage, setSelectedLanguage] = useState<ProgrammingLanguage>('javascript');
   const { toast } = useToast();
   
   // Mock JavaScript interpreter
@@ -22,6 +23,47 @@ const EditorLayout: React.FC = () => {
 
     // Create a safe environment to run the code
     try {
+      // Display different message based on language
+      if (selectedLanguage !== 'javascript') {
+        setOutput(prev => [...prev, `> Running ${selectedLanguage} code (simulation)...`]);
+        setOutput(prev => [...prev, `// Note: This is a simplified simulation of ${selectedLanguage} execution`]);
+        
+        // Simple output simulation for non-JavaScript languages
+        const lines = code.split('\n');
+        const printLines = lines.filter(line => {
+          const trimmedLine = line.trim().toLowerCase();
+          return (
+            (selectedLanguage === 'python' && (trimmedLine.startsWith('print(') || trimmedLine.startsWith('# output:'))) ||
+            (selectedLanguage === 'cpp' && (trimmedLine.startsWith('cout') || trimmedLine.startsWith('// output:'))) ||
+            (selectedLanguage === 'c' && (trimmedLine.startsWith('printf') || trimmedLine.startsWith('// output:'))) ||
+            (selectedLanguage === 'csharp' && (trimmedLine.startsWith('console.writeline') || trimmedLine.startsWith('// output:')))
+          );
+        });
+        
+        // Extract some simulated output
+        if (printLines.length > 0) {
+          printLines.forEach(line => {
+            if (line.includes('// output:')) {
+              setOutput(prev => [...prev, line.split('// output:')[1].trim()]);
+            } else if (line.includes('# output:')) {
+              setOutput(prev => [...prev, line.split('# output:')[1].trim()]);
+            } else {
+              // Try to extract string literals from print statements as simulated output
+              const match = line.match(/"([^"]+)"|'([^']+)'/);
+              if (match) {
+                setOutput(prev => [...prev, match[1] || match[2]]);
+              }
+            }
+          });
+        } else {
+          setOutput(prev => [...prev, "// No output detected. Add print/cout statements to see output."]);
+        }
+        
+        setOutput(prev => [...prev, '> Program completed successfully (simulated)']);
+        return;
+      }
+      
+      // JavaScript code execution (actual execution)
       // Override prompt and console.log
       const sandbox: any = {};
       
@@ -104,15 +146,23 @@ const EditorLayout: React.FC = () => {
     }
   };
   
-  const handleFileSelect = (content: string) => {
-    setCurrentCode(content);
+  const handleLanguageSelect = (language: ProgrammingLanguage) => {
+    setSelectedLanguage(language);
+    toast({
+      title: `Switched to ${language}`,
+      description: `Now coding in ${language} mode!`,
+      duration: 2000,
+    });
   };
 
   return (
     <div className="editor-wrapper p-4 grid grid-cols-12 gap-4">
-      {/* Left sidebar - File Explorer */}
+      {/* Left sidebar - Language Selector */}
       <div className="col-span-2 flex flex-col gap-4">
-        <FileExplorer onSelectFile={handleFileSelect} />
+        <LanguageSelector 
+          selectedLanguage={selectedLanguage} 
+          onLanguageSelect={handleLanguageSelect}
+        />
         
         <div className="mt-auto">
           <CodingHints />
@@ -126,6 +176,7 @@ const EditorLayout: React.FC = () => {
           <CodeEditor 
             onRun={handleRun} 
             onClear={handleClearTerminal} 
+            language={selectedLanguage}
           />
         </div>
         
