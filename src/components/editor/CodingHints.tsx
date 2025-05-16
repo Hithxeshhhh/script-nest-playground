@@ -18,7 +18,7 @@ const hints: CodingHint[] = [
     content: (
       <div>
         <p className="mb-2">Use <code className="bg-muted p-0.5 rounded">console.log()</code> to print values to the console:</p>
-        <pre className="bg-muted p-2 rounded my-2 text-xs">console.log("Hello World!");</pre>
+        <pre className="bg-muted p-2 rounded my-2 text-xs">{"console.log(\"Hello World!\");"}</pre>
         <p>This is great for debugging and seeing the values of your variables!</p>
       </div>
     ),
@@ -30,8 +30,7 @@ const hints: CodingHint[] = [
     content: (
       <div>
         <p className="mb-2">You can use <code className="bg-muted p-0.5 rounded">prompt()</code> to ask the user for input:</p>
-        <pre className="bg-muted p-2 rounded my-2 text-xs">const name = prompt("What is your name?");
-console.log("Hello, " + name + "!");</pre>
+        <pre className="bg-muted p-2 rounded my-2 text-xs">{"const name = prompt(\"What is your name?\");\nconsole.log(\"Hello, \" + name + \"!\");"}</pre>
         <p>This will show a popup asking for input!</p>
       </div>
     ),
@@ -43,12 +42,7 @@ console.log("Hello, " + name + "!");</pre>
     content: (
       <div>
         <p className="mb-2">Functions help organize your code into reusable blocks:</p>
-        <pre className="bg-muted p-2 rounded my-2 text-xs">function sayHello(name) {
-  return "Hello, " + name + "!";
-}
-
-// Using the function
-console.log(sayHello("Alex"));</pre>
+        <pre className="bg-muted p-2 rounded my-2 text-xs">{"function sayHello(name) {\n  return \"Hello, \" + name + \"!\";\n}\n\n// Using the function\nconsole.log(sayHello(\"Alex\"));"}</pre>
         <p>Functions are like mini-programs inside your program!</p>
       </div>
     ),
@@ -60,12 +54,7 @@ console.log(sayHello("Alex"));</pre>
     content: (
       <div>
         <p className="mb-2">Use if statements to make decisions in your code:</p>
-        <pre className="bg-muted p-2 rounded my-2 text-xs">const age = prompt("How old are you?");
-if (age >= 18) {
-  console.log("You are an adult!");
-} else {
-  console.log("You are a minor.");
-}</pre>
+        <pre className="bg-muted p-2 rounded my-2 text-xs">{"const age = prompt(\"How old are you?\");\nif (age >= 18) {\n  console.log(\"You are an adult!\");\n} else {\n  console.log(\"You are a minor.\");\n}"}</pre>
         <p>This lets your program take different paths based on conditions!</p>
       </div>
     ),
