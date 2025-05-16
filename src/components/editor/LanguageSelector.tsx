@@ -1,10 +1,9 @@
-
-import React from 'react';
+import React from "react";
+import { FileCode } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { FileCode } from 'lucide-react';
 
-export type ProgrammingLanguage = 'javascript' | 'python' | 'cpp' | 'csharp' | 'c';
+export type ProgrammingLanguage = 'javascript';
 
 interface LanguageSelectorProps {
   selectedLanguage: ProgrammingLanguage;
@@ -12,11 +11,7 @@ interface LanguageSelectorProps {
 }
 
 const languageOptions = [
-  { value: 'javascript', label: 'JavaScript' },
-  { value: 'python', label: 'Python' },
-  { value: 'cpp', label: 'C++' },
-  { value: 'c', label: 'C' },
-  { value: 'csharp', label: 'C#' }
+  { value: 'javascript', label: 'JavaScript' }
 ];
 
 const LanguageSelector: React.FC<LanguageSelectorProps> = ({ selectedLanguage, onLanguageSelect }) => {
@@ -25,13 +20,14 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ selectedLanguage, o
       <CardHeader className="bg-primary/10 pb-3">
         <CardTitle className="flex items-center text-sm">
           <FileCode className="h-4 w-4 mr-2 text-primary" />
-          Select Language
+          Language
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-4">
         <Select 
           value={selectedLanguage} 
           onValueChange={(value) => onLanguageSelect(value as ProgrammingLanguage)}
+          disabled
         >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select language" />
@@ -46,8 +42,8 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ selectedLanguage, o
         </Select>
         
         <div className="mt-4 text-xs text-muted-foreground">
-          <p className="mb-2">Choose a programming language to get started with coding.</p>
-          <p>Each language has different syntax and use cases. Try them out to see which one you like!</p>
+          <p className="mb-2">JavaScript is the primary language for web development.</p>
+          <p>It allows you to create interactive elements and dynamic content on websites.</p>
         </div>
       </CardContent>
     </Card>

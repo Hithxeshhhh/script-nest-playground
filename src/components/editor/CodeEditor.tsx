@@ -1,65 +1,97 @@
-
-import React, { useState, useRef, useEffect } from "react";
+import CodeMirror from "@uiw/react-codemirror";
+import React, { useEffect, useState } from "react";
+import { javascript } from "@codemirror/lang-javascript";
+import { oneDark } from "@codemirror/theme-one-dark";
+import { Copy, Download, Play, Save, Share, Trash2 } from "lucide-react";
+import type { ProgrammingLanguage } from "./LanguageSelector";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Play, Save, Trash2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
-import type { ProgrammingLanguage } from "./LanguageSelector";
+
+// CodeMirror imports
+
+// Local storage key
+const CODE_STORAGE_KEY = 'codeBuddy_savedCode';
 
 interface CodeEditorProps {
   onRun: (code: string) => void;
   onClear: () => void;
   language: ProgrammingLanguage;
+  isExecuting?: boolean;
 }
 
-const getDefaultCodeForLanguage = (language: ProgrammingLanguage): string => {
-  switch (language) {
-    case 'javascript':
-      return '// Welcome to JavaScript!\n\nfunction greet(name) {\n  return "Hello, " + name + "!";\n}\n\nconst message = greet("World");\nconsole.log(message);\n\n// You can also get user input:\n// const name = prompt("What\'s your name?");\n// console.log("Nice to meet you, " + name + "!");';
+const getDefaultCode = (): string => {
+  return `// Fibonacci Generator - Async Version
+
+// Main function to run our code
+async function runFibonacci() {
+  try {
+    // Get user input with await to properly handle the Promise
+    const userInput = await prompt("Enter a positive number:");
+    console.log("You entered: " + userInput);
     
-    case 'python':
-      return '# Welcome to Python!\n\ndef greet(name):\n    return "Hello, " + name + "!"\n\nmessage = greet("World")\nprint(message)  # output: Hello, World!\n\n# You can also get user input:\n# name = input("What\'s your name?")\n# print("Nice to meet you, " + name + "!")';
+    // Parse the input to a number
+    const maxNumber = parseInt(userInput);
+    console.log("Parsed number: " + maxNumber + " (type: " + typeof maxNumber + ")");
     
-    case 'cpp':
-      return '// Welcome to C++!\n\n#include <iostream>\n#include <string>\nusing namespace std;\n\nstring greet(string name) {\n    return "Hello, " + name + "!";\n}\n\nint main() {\n    string message = greet("World");\n    cout << message << endl;  // output: Hello, World!\n    \n    // You can also get user input:\n    // string name;\n    // cout << "What\'s your name? ";\n    // cin >> name;\n    // cout << "Nice to meet you, " << name << "!";\n    \n    return 0;\n}';
-    
-    case 'c':
-      return '// Welcome to C!\n\n#include <stdio.h>\n#include <string.h>\n\nvoid greet(char* name, char* result) {\n    strcpy(result, "Hello, ");\n    strcat(result, name);\n    strcat(result, "!");\n}\n\nint main() {\n    char message[100];\n    greet("World", message);\n    printf("%s\\n", message);  // output: Hello, World!\n    \n    // You can also get user input:\n    // char name[50];\n    // printf("What\'s your name? ");\n    // scanf("%s", name);\n    // printf("Nice to meet you, %s!\\n", name);\n    \n    return 0;\n}';
-    
-    case 'csharp':
-      return '// Welcome to C#!\n\nusing System;\n\nclass Program {\n    static string Greet(string name) {\n        return "Hello, " + name + "!";\n    }\n    \n    static void Main() {\n        string message = Greet("World");\n        Console.WriteLine(message);  // output: Hello, World!\n        \n        // You can also get user input:\n        // Console.Write("What\'s your name? ");\n        // string name = Console.ReadLine();\n        // Console.WriteLine("Nice to meet you, " + name + "!");\n    }\n}';
-    
-    default:
-      return '// Select a language to get started!';
+    // Simple validation
+    if (isNaN(maxNumber) || maxNumber <= 0) {
+      console.log("Please enter a valid positive number greater than 0");
+    } else {
+      // Start the Fibonacci sequence
+      console.log("Generating Fibonacci sequence up to " + maxNumber + ":");
+      
+      // First two numbers in sequence
+      let num1 = 0;
+      let num2 = 1;
+      
+      // Print the first two numbers
+      console.log(num1);
+      console.log(num2);
+      
+      // Generate the rest of the sequence
+      let nextNum = num1 + num2;
+      
+      while (nextNum <= maxNumber) {
+        // Print next number
+        console.log(nextNum);
+        
+        // Update values for next iteration
+        num1 = num2;
+        num2 = nextNum;
+        nextNum = num1 + num2;
+      }
+    }
+  } catch (error) {
+    console.log("An error occurred: " + error);
   }
+  
+  // End of program
+  console.log("Fibonacci sequence complete!");
+}
+
+// Run our async function
+runFibonacci();`;
 };
 
-const CodeEditor: React.FC<CodeEditorProps> = ({ onRun, onClear, language }) => {
-  const [code, setCode] = useState<string>(getDefaultCodeForLanguage(language));
-  const [lineNumbers, setLineNumbers] = useState<number[]>([]);
-  const [activeLineNumber, setActiveLineNumber] = useState<number | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+const CodeEditor: React.FC<CodeEditorProps> = ({ onRun, onClear, language, isExecuting = false }) => {
+  // Try to load saved code from local storage or use default
+  const [code, setCode] = useState<string>(() => {
+    const savedCode = localStorage.getItem(CODE_STORAGE_KEY);
+    return savedCode ? savedCode : getDefaultCode();
+  });
+  
   const { toast } = useToast();
 
-  // Update code when language changes
+  // Save code to local storage whenever it changes
   useEffect(() => {
-    setCode(getDefaultCodeForLanguage(language));
-  }, [language]);
-
-  // Generate line numbers whenever code changes
-  useEffect(() => {
-    const lines = code.split("\n").length;
-    setLineNumbers(Array.from({ length: lines }, (_, i) => i + 1));
+    localStorage.setItem(CODE_STORAGE_KEY, code);
   }, [code]);
-
-  const handleCodeChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setCode(e.target.value);
-  };
 
   const handleRunCode = () => {
     toast({
-      title: `Running ${language} code...`,
+      title: `Running JavaScript code...`,
       description: "Your program is now executing!",
       duration: 2000,
     });
@@ -79,17 +111,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onRun, onClear, language }) => 
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      
-      // Set appropriate file extension based on language
-      const fileExtensions: Record<ProgrammingLanguage, string> = {
-        javascript: 'js',
-        python: 'py',
-        cpp: 'cpp',
-        c: 'c',
-        csharp: 'cs'
-      };
-      
-      a.download = `my-code.${fileExtensions[language]}`;
+      a.download = `my-code.js`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -97,7 +119,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onRun, onClear, language }) => 
       
       toast({
         title: "Code saved!",
-        description: `Your code has been downloaded as my-code.${fileExtensions[language]}`,
+        description: `Your code has been downloaded as my-code.js`,
         duration: 2000,
       });
     } catch (error) {
@@ -109,26 +131,34 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onRun, onClear, language }) => 
       });
     }
   };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Tab") {
-      e.preventDefault();
-      const start = textareaRef.current!.selectionStart;
-      const end = textareaRef.current!.selectionEnd;
-      
-      // Insert 2 spaces at cursor position
-      const newCode = 
-        code.substring(0, start) + 
-        "  " + 
-        code.substring(end);
-      
-      setCode(newCode);
-      
-      // Move cursor after the inserted spaces
-      setTimeout(() => {
-        textareaRef.current!.selectionStart = start + 2;
-        textareaRef.current!.selectionEnd = start + 2;
-      }, 0);
+  
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(code)
+      .then(() => {
+        toast({
+          title: "Copied to clipboard",
+          description: "Your code has been copied to clipboard",
+          duration: 1500,
+        });
+      })
+      .catch(() => {
+        toast({
+          title: "Failed to copy",
+          description: "Could not copy code to clipboard",
+          variant: "destructive",
+          duration: 2000,
+        });
+      });
+  };
+  
+  const handleResetToDefault = () => {
+    if (confirm("Reset to default example code? This will replace your current code.")) {
+      setCode(getDefaultCode());
+      toast({
+        title: "Reset to default",
+        description: "Code has been reset to the default example",
+        duration: 2000,
+      });
     }
   };
 
@@ -137,7 +167,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onRun, onClear, language }) => 
       <div className="editor-toolbar p-3 bg-muted/30 flex justify-between items-center border-b border-border">
         <div className="font-medium text-sm flex items-center">
           <span className="bg-primary/20 text-primary px-2 py-0.5 rounded text-xs font-mono mr-2">
-            {language.toUpperCase()}
+            JAVASCRIPT
           </span>
           CodeBuddy Editor
         </div>
@@ -147,15 +177,33 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onRun, onClear, language }) => 
               <TooltipTrigger asChild>
                 <Button 
                   variant="outline" 
-                  size="sm" 
-                  onClick={handleSaveCode}
+                  size="sm"
+                  onClick={handleCopyCode}
                 >
-                  <Save className="h-4 w-4 mr-1" />
-                  Save
+                  <Copy className="h-4 w-4 mr-1" />
+                  Copy
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Save your code</p>
+                <p>Copy code to clipboard</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleSaveCode}
+                >
+                  <Download className="h-4 w-4 mr-1" />
+                  Download
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Save code as file</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -183,39 +231,64 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onRun, onClear, language }) => 
               <TooltipTrigger asChild>
                 <Button 
                   onClick={handleRunCode} 
-                  className="bg-secondary hover:bg-secondary/90 text-secondary-foreground animate-float"
+                  className={cn(
+                    "bg-secondary hover:bg-secondary/90 text-secondary-foreground",
+                    isExecuting && "animate-pulse bg-orange-600 hover:bg-orange-600"
+                  )}
+                  disabled={isExecuting}
                 >
-                  <Play className="h-4 w-4 mr-1" />
-                  Run Code
+                  {isExecuting ? (
+                    <>
+                      <span className="mr-1 h-4 w-4 animate-spin">⟳</span>
+                      Running...
+                    </>
+                  ) : (
+                    <>
+                      <Play className="h-4 w-4 mr-1" />
+                      Run Code
+                    </>
+                  )}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Execute your code</p>
+                <p>{isExecuting ? "Code is currently running" : "Execute your code"}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </div>
       </div>
 
-      <div className="editor-content flex-1 flex overflow-hidden">
-        <div className="line-numbers bg-editor-bg p-2 text-sm font-mono">
-          {lineNumbers.map((num) => (
-            <div
-              key={num}
-              className={cn("line-number", activeLineNumber === num && "active")}
-            >
-              {num}
-            </div>
-          ))}
-        </div>
-        <textarea
-          ref={textareaRef}
+      <div className="editor-content flex-1 overflow-hidden">
+        <CodeMirror
           value={code}
-          onChange={handleCodeChange}
-          onKeyDown={handleKeyDown}
-          className="flex-1 bg-editor-bg text-editor-text p-2 outline-none resize-none text-sm font-mono"
-          spellCheck="false"
+          height="100%"
+          onChange={setCode}
+          extensions={[javascript({ jsx: true })]}
+          theme={oneDark}
+          basicSetup={{
+            lineNumbers: true,
+            highlightActiveLine: true,
+            highlightSelectionMatches: true,
+            autocompletion: true,
+            foldGutter: true,
+            indentOnInput: true,
+            bracketMatching: true,
+            closeBrackets: true,
+            tabSize: 2,
+          }}
+          className="h-full text-sm"
         />
+      </div>
+      
+      <div className="editor-footer p-2 bg-muted/10 border-t border-border flex justify-between text-xs text-muted-foreground">
+        <div>
+          <button onClick={handleResetToDefault} className="hover:text-primary transition-colors">
+            Reset to Example
+          </button>
+        </div>
+        <div>
+          <span>JavaScript ES6 • Auto-save enabled</span>
+        </div>
       </div>
     </div>
   );

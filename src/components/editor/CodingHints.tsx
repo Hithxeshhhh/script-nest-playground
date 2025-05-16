@@ -1,8 +1,8 @@
-
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Lightbulb } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { Lightbulb } from "lucide-react";
+import { ProgrammingLanguage } from "./LanguageSelector";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface CodingHint {
   id: number;
@@ -11,7 +11,12 @@ interface CodingHint {
   category: 'beginner' | 'syntax' | 'best-practice';
 }
 
+interface CodingHintsProps {
+  language: ProgrammingLanguage;
+}
+
 const hints: CodingHint[] = [
+  // JavaScript hints
   {
     id: 1,
     title: 'Using Console.log',
@@ -60,12 +65,60 @@ const hints: CodingHint[] = [
     ),
     category: 'beginner'
   },
+  {
+    id: 5,
+    title: 'JavaScript Arrays',
+    content: (
+      <div>
+        <p className="mb-2">Arrays store collections of values:</p>
+        <pre className="bg-muted p-2 rounded my-2 text-xs">{"const fruits = [\"Apple\", \"Banana\", \"Orange\"];\n\n// Accessing array elements\nconsole.log(fruits[0]); // Apple\n\n// Adding to an array\nfruits.push(\"Mango\");\n\n// Array methods\nconst fruitsString = fruits.join(\", \");\nconsole.log(fruitsString);"}</pre>
+        <p>Arrays have many built-in methods to manipulate data!</p>
+      </div>
+    ),
+    category: 'beginner'
+  },
+  {
+    id: 6,
+    title: 'JavaScript Objects',
+    content: (
+      <div>
+        <p className="mb-2">Objects store data with named properties:</p>
+        <pre className="bg-muted p-2 rounded my-2 text-xs">{"const person = {\n  name: \"John\",\n  age: 30,\n  city: \"New York\"\n};\n\n// Accessing properties\nconsole.log(person.name); // John\nconsole.log(person[\"age\"]); // 30\n\n// Adding properties\nperson.job = \"Developer\";"}</pre>
+        <p>Objects are fundamental structures in JavaScript!</p>
+      </div>
+    ),
+    category: 'beginner'
+  },
+  {
+    id: 7,
+    title: 'Using Loops',
+    content: (
+      <div>
+        <p className="mb-2">Loops let you repeat code:</p>
+        <pre className="bg-muted p-2 rounded my-2 text-xs">{"// For loop\nfor (let i = 0; i < 5; i++) {\n  console.log(`Loop count: ${i}`);\n}\n\n// While loop\nlet count = 0;\nwhile (count < 3) {\n  console.log(`Count: ${count}`);\n  count++;\n}\n\n// Loop through array\nconst numbers = [1, 2, 3];\nnumbers.forEach(num => console.log(num));"}</pre>
+        <p>Different loop types serve different purposes!</p>
+      </div>
+    ),
+    category: 'beginner'
+  },
+  {
+    id: 8,
+    title: 'Template Literals',
+    content: (
+      <div>
+        <p className="mb-2">Template literals make string formatting easier:</p>
+        <pre className="bg-muted p-2 rounded my-2 text-xs">{"const name = \"John\";\nconst age = 30;\n\n// Old way\nconsole.log(\"Hello, my name is \" + name + \" and I am \" + age + \" years old.\");\n\n// Using template literals\nconsole.log(`Hello, my name is ${name} and I am ${age} years old.`);"}</pre>
+        <p>The backtick (`) syntax allows for more readable strings with variables!</p>
+      </div>
+    ),
+    category: 'beginner'
+  }
 ];
 
-const CodingHints: React.FC = () => {
+const CodingHints: React.FC<CodingHintsProps> = ({ language }) => {
   const [currentHint, setCurrentHint] = useState<CodingHint | null>(null);
 
-  // Get a random hint initially and when Next button is clicked
+  // Get a random hint
   const getRandomHint = () => {
     const randomIndex = Math.floor(Math.random() * hints.length);
     setCurrentHint(hints[randomIndex]);
@@ -73,14 +126,14 @@ const CodingHints: React.FC = () => {
 
   useEffect(() => {
     getRandomHint();
-  }, []);
+  }, []); // Only run once on component mount
 
   return (
     <Card className="h-full overflow-hidden">
       <CardHeader className="bg-primary/10 pb-3">
         <CardTitle className="flex items-center text-sm">
           <Lightbulb className="h-4 w-4 mr-2 text-primary" />
-          Coding Tips
+          JavaScript Tips
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-4 text-sm">
