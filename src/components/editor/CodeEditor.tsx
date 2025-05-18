@@ -22,57 +22,80 @@ interface CodeEditorProps {
 }
 
 const getDefaultCode = (): string => {
-  return `// Fibonacci Generator - Async Version
+  return `// Welcome to CodeBuddy - A Modern JavaScript Playground!
 
-// Main function to run our code
-async function runFibonacci() {
+// 1. Basic Input/Output
+const name = prompt("What's your name?");
+console.log(\`Hello, \${name}! Let's explore JavaScript features.\`);
+
+// 2. Working with Arrays
+const numbers = [1, 2, 3, 4, 5];
+console.log('Original array:', numbers);
+
+// Using modern array methods
+const doubled = numbers.map(n => n * 2);
+console.log('Doubled numbers:', doubled);
+
+const sum = numbers.reduce((a, b) => a + b, 0);
+console.log('Sum of numbers:', sum);
+
+// 3. Async Operations
+async function fetchJoke() {
   try {
-    // Get user input with await to properly handle the Promise
-    const userInput = await prompt("Enter a positive number:");
-    console.log("You entered: " + userInput);
+    console.log('Fetching a programming joke...');
+    const response = await fetch('https://v2.jokeapi.dev/joke/Programming?safe-mode');
+    const joke = await response.json();
     
-    // Parse the input to a number
-    const maxNumber = parseInt(userInput);
-    console.log("Parsed number: " + maxNumber + " (type: " + typeof maxNumber + ")");
-    
-    // Simple validation
-    if (isNaN(maxNumber) || maxNumber <= 0) {
-      console.log("Please enter a valid positive number greater than 0");
+    if (joke.type === 'single') {
+      console.log('Joke:', joke.joke);
     } else {
-      // Start the Fibonacci sequence
-      console.log("Generating Fibonacci sequence up to " + maxNumber + ":");
-      
-      // First two numbers in sequence
-      let num1 = 0;
-      let num2 = 1;
-      
-      // Print the first two numbers
-      console.log(num1);
-      console.log(num2);
-      
-      // Generate the rest of the sequence
-      let nextNum = num1 + num2;
-      
-      while (nextNum <= maxNumber) {
-        // Print next number
-        console.log(nextNum);
-        
-        // Update values for next iteration
-        num1 = num2;
-        num2 = nextNum;
-        nextNum = num1 + num2;
-      }
+      console.log('Setup:', joke.setup);
+      console.log('Punchline:', joke.delivery);
     }
   } catch (error) {
-    console.log("An error occurred: " + error);
+    console.error('Failed to fetch joke:', error.message);
   }
-  
-  // End of program
-  console.log("Fibonacci sequence complete!");
 }
 
-// Run our async function
-runFibonacci();`;
+// 4. Timer Example
+console.log('\\nStarting a timer...');
+let counter = 0;
+const timerId = setInterval(() => {
+  counter++;
+  console.log(\`Timer tick: \${counter}\`);
+  
+  if (counter >= 3) {
+    clearInterval(timerId);
+    console.log('Timer stopped!');
+    
+    // After timer, fetch a joke
+    fetchJoke();
+  }
+}, 1000);
+
+// 5. Error Handling
+try {
+  // Intentional error
+  const obj = null;
+  obj.nonexistent();
+} catch (error) {
+  console.error('Caught an error:', error.message);
+}
+
+// 6. Local Storage
+const visits = parseInt(localStorage.getItem('visits') || '0') + 1;
+localStorage.setItem('visits', visits.toString());
+console.log(\`You have run this code \${visits} time(s)!\`);
+
+// Try modifying this code or write your own!
+// Features available:
+// - Full ES6+ support
+// - Async/await
+// - Fetch API
+// - Timer functions
+// - Local Storage
+// - Console methods (log, error, warn, info)
+// - And much more!`;
 };
 
 const CodeEditor: React.FC<CodeEditorProps> = ({ onRun, onClear, language, isExecuting = false }) => {

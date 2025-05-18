@@ -15,255 +15,313 @@ const EditorLayout: React.FC = () => {
   const [isExecuting, setIsExecuting] = useState<boolean>(false);
   const { toast } = useToast();
   
-  // Reference to keep track of the execution state
-  const executionStateRef = useRef({
+  // Reference to keep track of global state
+  const globals = useRef({
+    pendingInputResolve: null as ((value: string) => void) | null,
     isRunning: false,
-    pendingInputResolvers: [] as Array<(value: string) => void>,
-    shouldHalt: false,
-    promptActive: false,
-    debugMode: true // Enable debug mode to see what's happening
+    userPrompt: null as ((message: string) => Promise<string>) | null,
+    log: null as ((message: string) => void) | null
   });
   
-  // JavaScript code interpreter
+  // Run the user's code
   const runCode = (code: string) => {
-    // Reset output when starting a new run
+    // Reset terminal
     setOutput(['// Output will appear here', '> Running JavaScript program...']);
-    
-    // Reset execution state
-    executionStateRef.current.isRunning = true;
-    executionStateRef.current.pendingInputResolvers = [];
-    executionStateRef.current.shouldHalt = false;
-    executionStateRef.current.promptActive = false;
     setIsExecuting(true);
+    setWaitingForInput(false);
     
-    // Define the global prompt function that will handle user input
+    // Setup the logging function
+    const logToTerminal = (message: string) => {
+      setOutput(prev => [...prev, message]);
+    };
+    
+    // Setup the prompt function
     const userPrompt = async (message: string): Promise<string> => {
+      // Show the prompt message
+      logToTerminal(`> ${message}`);
+      
+      // Set waiting state
+      setWaitingForInput(true);
+      
+      // Return a promise that will be resolved when input is received
       return new Promise((resolve) => {
-        // Display the prompt message
-        setOutput(prev => [...prev, `> ${message}`]);
-        
-        // Check if we already have inputs in the queue
-        if (inputQueue.length > 0) {
-          const input = inputQueue.shift() || '';
-          setInputQueue([...inputQueue]);
-          // Show the input in the output with a special prefix
-          setOutput(prev => [...prev, `« ${input}`]);
-          if (executionStateRef.current.debugMode) {
-            setOutput(prev => [...prev, `DEBUG: Using queued input: "${input}"`]);
-          }
-          resolve(input);
-          return;
-        }
-        
-        // No input available, wait for user
-        executionStateRef.current.promptActive = true;
-        setWaitingForInput(true);
-        
-        // Store the resolver to be called when input is received
-        executionStateRef.current.pendingInputResolvers.push(resolve);
+        globals.current.pendingInputResolve = (value: string) => {
+          setWaitingForInput(false);
+          // Only log the input once
+          logToTerminal(`« ${value}`);
+          resolve(value);
+        };
       });
     };
     
-    // Define custom console object
-    const userConsole = {
-      log: (...args: any[]) => {
-        const message = args.map(arg => {
-          if (typeof arg === 'object') {
-            try {
-              return JSON.stringify(arg, null, 2);
-            } catch (e) {
-              return String(arg);
-            }
-          }
-          return String(arg);
-        }).join(' ');
-        
-        setOutput(prev => [...prev, message]);
-      }
-    };
+    // Store globals for other functions to access
+    globals.current.log = logToTerminal;
+    globals.current.userPrompt = userPrompt;
+    globals.current.isRunning = true;
     
-    // Execute user code with proper async handling
-    const executeUserCode = async () => {
+    // Prepare a safe execution environment
+    const executeInSandbox = async () => {
       try {
-        // Create a wrapper that correctly manages async operations
-        const wrappedCode = `
-          async function executeUserCode() {
-            // Storage for user inputs to debug issues
-            const userInputs = [];
-            
-            // Input handling function that awaits user input
-            async function getUserInput(message) {
+        // Save original functions
+        const originalConsoleLog = console.log;
+        const originalPrompt = window.prompt;
+        
+        // Override built-in functions
+        console.log = function(...args) {
+          const message = args.map(arg => {
+            if (arg === null) return 'null';
+            if (arg === undefined) return 'undefined';
+            if (typeof arg === 'object') {
               try {
-                const userInput = await prompt(message);
-                userInputs.push(userInput);
-                return userInput; // Return the raw input string
-              } catch (e) {
-                console.log("Error in prompt: " + e.message);
-                return "";
+                return JSON.stringify(arg, null, 2);
+              } catch {
+                return String(arg);
               }
             }
-            
-            // Override parsing functions to handle input correctly
-            // Save the original functions
-            const originalParseInt = parseInt;
-            const originalParseFloat = parseFloat;
-            
-            // Create safer versions of the parse functions
-            const safeParseInt = function(str) {
-              // If this is a string, try to clean it up
-              if (typeof str === 'string') {
-                str = str.trim();
-                const parsed = originalParseInt(str);
-                console.log("DEBUG: parseInt received: '" + str + "', returned: " + parsed);
-                return parsed;
-              }
-              console.log("DEBUG: parseInt received non-string: " + typeof str);
-              return originalParseInt(str);
-            };
-            
-            const safeParseFloat = function(str) {
-              if (typeof str === 'string') {
-                str = str.trim();
-                const parsed = originalParseFloat(str);
-                console.log("DEBUG: parseFloat received: '" + str + "', returned: " + parsed);
-                return parsed;
-              }
-              return originalParseFloat(str);
-            };
-            
-            // Override only inside a scoped function instead of globally
-            function runWithSafeNumberFunctions() {
-              // Override the functions only inside this scope
-              const originalPromptFunc = prompt;
-              globalThis.prompt = getUserInput;
-              
-              // Override parse functions only within this scope
-              globalThis.parseInt = safeParseInt;
-              globalThis.parseFloat = safeParseFloat;
-              
-              return async function() {
-                try {
-                  // Run the actual user code
-                  ${code}
-                } finally {
-                  // Restore original functions
-                  globalThis.prompt = originalPromptFunc;
-                  globalThis.parseInt = originalParseInt;
-                  globalThis.parseFloat = originalParseFloat;
-                }
-              }();
-            }
-            
-            try {
-              // Run the code in a safer way that doesn't affect Number.isNaN
-              await runWithSafeNumberFunctions();
-              
-              // If we got here, show any inputs that were processed
-              if (userInputs.length > 0) {
-                console.log("DEBUG: All inputs processed:", userInputs);
-              }
-            } catch (e) {
-              console.log("Error: " + e.message);
-            }
+            return String(arg);
+          }).join(' ');
+          
+          // Log to terminal
+          if (globals.current.log) {
+            globals.current.log(message);
           }
           
-          // Return the execution as a promise
-          return executeUserCode();
+          // Also log to browser console
+          originalConsoleLog(...args);
+        };
+        
+        // Override prompt
+        window.prompt = function(message?: string): string {
+          if (!message) return '';
+          
+          // Create a special marker that our execution system will recognize
+          return `__AWAIT_PROMPT_${message}__`;
+        };
+        
+        // Execute the code
+        const wrappedCode = `
+          async function __runUserCode() {
+            try {
+              // Create a new scope for user code
+              const __userScope = {
+                // Console methods
+                console: {
+                  log: (...args) => {
+                    if (globals.current.log) {
+                      globals.current.log(args.map(arg => {
+                        if (arg === null) return 'null';
+                        if (arg === undefined) return 'undefined';
+                        if (typeof arg === 'object') {
+                          try {
+                            return JSON.stringify(arg, null, 2);
+                          } catch {
+                            return String(arg);
+                          }
+                        }
+                        return String(arg);
+                      }).join(' '));
+                    }
+                  },
+                  error: (...args) => {
+                    if (globals.current.log) {
+                      globals.current.log('Error: ' + args.map(String).join(' '));
+                    }
+                  },
+                  warn: (...args) => {
+                    if (globals.current.log) {
+                      globals.current.log('Warning: ' + args.map(String).join(' '));
+                    }
+                  },
+                  info: (...args) => {
+                    if (globals.current.log) {
+                      globals.current.log('Info: ' + args.map(String).join(' '));
+                    }
+                  }
+                },
+                
+                // Timer functions
+                setTimeout: (fn, delay, ...args) => {
+                  if (delay > 30000) {
+                    throw new Error('setTimeout delay cannot exceed 30 seconds');
+                  }
+                  return setTimeout(fn, delay, ...args);
+                },
+                setInterval: (fn, delay, ...args) => {
+                  if (delay > 30000) {
+                    throw new Error('setInterval delay cannot exceed 30 seconds');
+                  }
+                  return setInterval(fn, delay, ...args);
+                },
+                clearTimeout,
+                clearInterval,
+                
+                // Built-in objects and functions
+                Object, Array, String, Number, Boolean, Date, Math, JSON, RegExp,
+                parseInt, parseFloat, isNaN, isFinite,
+                Error, TypeError, SyntaxError, ReferenceError,
+                Map, Set, WeakMap, WeakSet,
+                Promise, async, await,
+                
+                // Fetch API (with timeout)
+                fetch: async (url, options = {}) => {
+                  const controller = new AbortController();
+                  const timeout = setTimeout(() => controller.abort(), 5000);
+                  try {
+                    const response = await fetch(url, { 
+                      ...options, 
+                      signal: controller.signal 
+                    });
+                    clearTimeout(timeout);
+                    return response;
+                  } catch (error) {
+                    clearTimeout(timeout);
+                    throw error;
+                  }
+                },
+                
+                // Local Storage API
+                localStorage: {
+                  getItem: (key) => localStorage.getItem(key),
+                  setItem: (key, value) => {
+                    if (typeof key !== 'string' || typeof value !== 'string') {
+                      throw new Error('localStorage only accepts string values');
+                    }
+                    localStorage.setItem(key, value);
+                  },
+                  removeItem: (key) => localStorage.removeItem(key),
+                  clear: () => localStorage.clear()
+                },
+                
+                // Utility functions
+                btoa: (str) => btoa(str),
+                atob: (str) => atob(str),
+                encodeURI,
+                decodeURI,
+                encodeURIComponent,
+                decodeURIComponent
+              };
+              
+              // Process the code to handle all prompts
+              const code = \`${code.replace(/`/g, '\\`')}\`;
+              let processedCode = code;
+              const promptRegex = /prompt\\(["'](.+?)["']\\)/g;
+              let match;
+              
+              while ((match = promptRegex.exec(code)) !== null) {
+                const fullMatch = match[0];
+                const promptMessage = match[1];
+                const input = await globals.current.userPrompt(promptMessage);
+                processedCode = processedCode.replace(fullMatch, JSON.stringify(input));
+              }
+              
+              // Execute the processed code in the sandbox
+              const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
+              const userFunction = new AsyncFunction('__userScope', \`
+                with (__userScope) {
+                  try {
+                    \${processedCode}
+                  } catch (error) {
+                    console.error(error.stack || error.message);
+                  }
+                }
+              \`);
+              
+              await userFunction(__userScope);
+              
+            } catch (error) {
+              if (globals.current.log) {
+                globals.current.log(\`Runtime Error: \${error.message}\`);
+                if (error.stack) {
+                  globals.current.log(error.stack.split('\\n').slice(1).join('\\n'));
+                }
+              }
+            }
+          }
+          __runUserCode();
         `;
         
-        // Create a function with the correct context
-        const executeFunction = new Function('prompt', 'console', wrappedCode);
+        await eval(wrappedCode);
         
-        // Execute the code with our prompt and console implementations
-        await executeFunction(userPrompt, userConsole);
+        // Restore original functions
+        console.log = originalConsoleLog;
+        window.prompt = originalPrompt;
         
-        if (!executionStateRef.current.shouldHalt) {
-          setOutput(prev => [...prev, '> Program completed successfully']);
-        }
+        // Mark execution as complete
+        finishExecution();
       } catch (error) {
-        if (executionStateRef.current.shouldHalt) {
-          return; // Don't show errors if we intentionally halted execution
+        if (globals.current.log) {
+          globals.current.log(`Execution error: ${error.message}`);
         }
-        
-        if (error instanceof Error) {
-          setOutput(prev => [...prev, `Error: ${error.message}`]);
-        } else {
-          setOutput(prev => [...prev, 'An unknown error occurred']);
-        }
-      } finally {
-        if (!executionStateRef.current.shouldHalt) {
-          executionStateRef.current.isRunning = false;
-          executionStateRef.current.promptActive = false;
-          setWaitingForInput(false);
-          setIsExecuting(false);
-        }
+        finishExecution();
       }
     };
     
-    // Start execution
-    executeUserCode();
+    // Execute the code
+    executeInSandbox();
   };
   
+  // Finish execution and clean up
+  const finishExecution = () => {
+    globals.current.isRunning = false;
+    setIsExecuting(false);
+    
+    // Show completion message if not waiting for input
+    if (!waitingForInput && globals.current.log) {
+      globals.current.log('> Program completed successfully');
+    }
+  };
+  
+  // Handle running the user's code
   const handleRun = (code: string) => {
-    // If there's already code running, halt it
-    if (executionStateRef.current.isRunning) {
-      executionStateRef.current.shouldHalt = true;
-      
-      // Resolve any pending inputs to unblock the previous execution
-      executionStateRef.current.pendingInputResolvers.forEach(resolver => {
-        resolver("");
-      });
-      executionStateRef.current.pendingInputResolvers = [];
-      executionStateRef.current.promptActive = false;
+    // If we're already running, clean up first
+    if (globals.current.isRunning) {
+      globals.current.isRunning = false;
+      globals.current.pendingInputResolve = null;
       setWaitingForInput(false);
       setIsExecuting(false);
       
-      // Wait a moment before starting new execution
+      // Wait a bit before starting new execution
       setTimeout(() => {
-        // Clear any previous input queue
         setInputQueue([]);
         setCurrentCode(code);
         runCode(code);
       }, 100);
     } else {
-      // Clear any previous input queue
+      // Start fresh execution
       setInputQueue([]);
       setCurrentCode(code);
       runCode(code);
     }
   };
   
+  // Handle clearing the terminal
   const handleClearTerminal = () => {
     setOutput(['// Output cleared']);
     setWaitingForInput(false);
   };
   
+  // Handle user input
   const handleUserInput = (input: string) => {
-    // If there's a resolver waiting, resolve it with the input
-    if (executionStateRef.current.pendingInputResolvers.length > 0) {
-      const resolve = executionStateRef.current.pendingInputResolvers.shift()!;
-      
-      // Add the input to the output with a "«" prefix to distinguish it from program output
-      setOutput(prev => [...prev, `« ${input}`]);
-      
-      if (executionStateRef.current.debugMode) {
-        setOutput(prev => [...prev, `DEBUG: User input received: "${input}"`]);
-      }
+    // Check if we have a pending input request
+    if (globals.current.pendingInputResolve) {
+      const resolve = globals.current.pendingInputResolve;
+      globals.current.pendingInputResolve = null;
       
       // No longer waiting for input
       setWaitingForInput(false);
-      executionStateRef.current.promptActive = false;
       
-      // Resolve with the raw input
-      resolve(input);
+      // Use setTimeout to ensure UI updates before continuing
+      setTimeout(() => {
+        resolve(input);
+      }, 10);
     } else {
-      // No resolver waiting, just add to queue for future use
+      // No pending request, queue the input
       setInputQueue(prev => [...prev, input]);
       setOutput(prev => [...prev, `Input saved: ${input}`]);
-      setWaitingForInput(false);
     }
   };
   
+  // Handle language selection
   const handleLanguageSelect = (language: ProgrammingLanguage) => {
     setSelectedLanguage(language);
     toast({

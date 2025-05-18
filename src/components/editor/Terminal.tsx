@@ -56,13 +56,16 @@ const Terminal: React.FC<TerminalProps> = ({
 
   return (
     <div className="terminal-container h-full flex flex-col rounded-lg overflow-hidden bg-terminal-bg text-terminal-text border border-border">
-      <div className="terminal-toolbar p-3 bg-muted/30 flex justify-between items-center border-b border-border">
+      <div className={cn(
+        "terminal-toolbar p-3 flex justify-between items-center border-b border-border",
+        waitingForInput ? "bg-yellow-500/20" : "bg-muted/30"
+      )}>
         <div className="font-medium text-sm flex items-center">
           <TerminalIcon className="h-4 w-4 mr-2" />
           Console Output
           {waitingForInput && (
-            <span className="ml-2 text-xs bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded-full animate-pulse">
-              Waiting for input...
+            <span className="ml-2 text-xs bg-yellow-500 text-black px-2 py-0.5 rounded-full animate-pulse">
+              Input Required
             </span>
           )}
         </div>
@@ -89,7 +92,10 @@ const Terminal: React.FC<TerminalProps> = ({
 
       <div 
         ref={outputContainerRef}
-        className="terminal-output-container flex-1 p-3 overflow-auto text-sm"
+        className={cn(
+          "terminal-output-container flex-1 p-3 overflow-auto text-sm",
+          waitingForInput && "border-l-4 border-yellow-500"
+        )}
       >
         {output.map((line, index) => {
           // Check if line is an error message
@@ -102,6 +108,10 @@ const Terminal: React.FC<TerminalProps> = ({
           const isUserInput = line.startsWith("«");
           // Check if it's an input saved message
           const isInputSaved = line.includes("Input saved:");
+          // Check if it's debug output we want to hide
+          const isDebug = line.includes("DEBUG:");
+          
+          if (isDebug) return null; // Skip debug messages in output
           
           return (
             <div 
@@ -109,9 +119,9 @@ const Terminal: React.FC<TerminalProps> = ({
               className={cn(
                 "terminal-line mb-1 font-mono",
                 isError ? "text-terminal-error" : 
-                isPrompt ? "text-terminal-highlight" : 
+                isPrompt ? "text-terminal-highlight font-bold" : 
                 isSuccess ? "text-green-500" :
-                isUserInput ? "text-cyan-400 font-semibold" :
+                isUserInput ? "text-cyan-400 font-semibold bg-cyan-500/10 px-2 py-1 rounded" :
                 isInputSaved ? "text-blue-400 italic" :
                 "text-terminal-text"
               )}
@@ -122,26 +132,31 @@ const Terminal: React.FC<TerminalProps> = ({
         })}
         
         {waitingForInput && (
-          <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-md p-2 mt-2">
-            <form onSubmit={handleInputSubmit} className="flex items-center">
-              <div className="text-yellow-500 mr-2 font-bold">Input:</div>
-              <input
-                ref={inputRef}
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="terminal-input flex-1 bg-transparent border border-yellow-500/30 outline-none text-white focus:ring-1 focus:ring-yellow-500/50 px-2 py-1 rounded"
-                placeholder="Type your input here and press Enter..."
-                autoFocus
-              />
-              <button 
-                type="submit" 
-                className="ml-2 px-3 py-1 text-xs bg-yellow-500/20 text-yellow-500 rounded hover:bg-yellow-500/30 transition-colors"
-                disabled={!inputValue.trim()}
-              >
-                Submit
-              </button>
+          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-md p-3 mt-2 animate-pulse">
+            <form onSubmit={handleInputSubmit} className="flex flex-col gap-2">
+              <div className="text-yellow-500 font-bold flex items-center">
+                <span className="mr-2">⌨️</span>
+                Input Required:
+              </div>
+              <div className="flex items-center">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className="terminal-input flex-1 bg-transparent border border-yellow-500/50 outline-none text-white focus:ring-2 focus:ring-yellow-500/70 px-3 py-2 rounded text-base"
+                  placeholder="Type your input here and press Enter..."
+                  autoFocus
+                />
+                <button 
+                  type="submit" 
+                  className="ml-2 px-4 py-2 bg-yellow-500/80 text-black rounded hover:bg-yellow-500 transition-colors font-medium"
+                  disabled={!inputValue.trim()}
+                >
+                  Submit
+                </button>
+              </div>
             </form>
           </div>
         )}
