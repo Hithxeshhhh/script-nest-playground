@@ -1,73 +1,106 @@
-# Welcome to your Lovable project
+# CodeBuddy - Modern JavaScript Playground
 
-## Project info
 
-**URL**: https://lovable.dev/projects/c40a7e2b-513b-4ed8-9a51-e9d892262817
+**CodeBuddy** is a modern, browser-based JavaScript playground that allows you to write, run, and experiment with JavaScript code in a clean, intuitive interface. Perfect for learning, testing ideas, or solving coding problems on the go.
 
-## How can I edit this code?
+## ✨ Features
 
-There are several ways of editing your application.
+- **Live JavaScript Execution** - Write and run JavaScript code directly in your browser
+- **Interactive Console** - See your output in a dedicated console area
+- **User Input Support** - Get user input using the `prompt()` function
+- **Code Persistence** - Your code is automatically saved to local storage
+- **Syntax Highlighting** - Powered by CodeMirror for a great coding experience
+- **Coding Tips** - Built-in hints and examples to help you learn JavaScript
+- **Responsive Design** - Works on desktop and mobile devices
+- **Modern UI** - Clean, intuitive interface with dark mode support
 
-**Use Lovable**
+## 🚀 Quick Start
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/c40a7e2b-513b-4ed8-9a51-e9d892262817) and start prompting.
+### Online Demo
 
-Changes made via Lovable will be committed automatically to this repo.
+Visit [codebuddy.vercel.app](https://codebuddy.vercel.app) to start coding right away!
 
-**Use your preferred IDE**
+### Local Installation
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/codebuddy.git
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+# Navigate to the project directory
+cd codebuddy
 
-Follow these steps:
+# Install dependencies
+npm install
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start the development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Now open [http://localhost:3000](http://localhost:3000) in your browser to see the app.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 📖 How to Use
 
-**Use GitHub Codespaces**
+1. **Write Your Code** - Type your JavaScript code in the editor area
+2. **Run Your Code** - Click the "Run Code" button to execute
+3. **View Results** - See the output in the console below
+4. **Get User Input** - Use `prompt("Your question")` for user input
+5. **Learn from Tips** - Check out the tips section for JavaScript examples
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Example Code
 
-## What technologies are used for this project?
+```javascript
+// Basic input/output
+const name = prompt("What's your name?");
+console.log(`Hello, ${name}!`);
 
-This project is built with:
+// Working with arrays
+const numbers = [1, 2, 3, 4, 5];
+const doubled = numbers.map(n => n * 2);
+console.log("Doubled numbers:", doubled);
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+// Using async/await
+async function fetchData() {
+  try {
+    console.log("Fetching data...");
+    const response = await fetch("https://jsonplaceholder.typicode.com/todos/1");
+    const data = await response.json();
+    console.log("Fetched data:", data);
+  } catch (error) {
+    console.error("Error:", error);
+  }
+}
 
-## How can I deploy this project?
+fetchData();
+```
 
-Simply open [Lovable](https://lovable.dev/projects/c40a7e2b-513b-4ed8-9a51-e9d892262817) and click on Share -> Publish.
+## 🔮 Coming Soon
 
-## Can I connect a custom domain to my Lovable project?
+- **More Programming Languages** - Support for Python, TypeScript, C++, and Java
+- **Code Sharing** - Share your code snippets with others
+- **Themes** - Choose between different editor themes
+- **Custom Settings** - Personalize your coding environment
+- **Export Options** - Download your code in various formats
 
-Yes, you can!
+## 🔧 Technologies Used
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+- [React](https://reactjs.org/) - UI library
+- [TypeScript](https://www.typescriptlang.org/) - Type safety
+- [CodeMirror](https://codemirror.net/) - Code editor component
+- [TailwindCSS](https://tailwindcss.com/) - Styling
+- [Lucide Icons](https://lucide.dev/) - Beautiful icons
+- [shadcn/ui](https://ui.shadcn.com/) - UI components
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👥 Contributing
+
+Contributions are welcome! Feel free to open issues or submit pull requests to help improve CodeBuddy.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
