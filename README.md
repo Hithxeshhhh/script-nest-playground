@@ -18,7 +18,7 @@
 
 ### Online Demo
 
-Visit [codebuddy.vercel.app](https://codebuddy.vercel.app) to start coding right away!
+Visit [codebuddy.vercel.app]([https://codebuddy.vercel.app](https://script-nest-playground.vercel.app/)) to start coding right away!
 
 ### Local Installation
 
