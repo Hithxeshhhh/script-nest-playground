@@ -122,7 +122,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onRun, onClear, language, isExe
                   variant="outline" 
                   size="sm"
                   onClick={handleCopyCode}
-                  className="h-7 md:h-8 px-2 md:px-3 text-xs"
+                  className="h-7 md:h-8 px-2 md:px-3 text-xs text-black"
                 >
                   <Copy className="h-3 w-3 md:h-4 md:w-4 sm:mr-1" />
                   <span className="hidden sm:inline">Copy</span>
@@ -141,7 +141,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onRun, onClear, language, isExe
                   variant="outline" 
                   size="sm" 
                   onClick={handleSaveCode}
-                  className="h-7 md:h-8 px-2 md:px-3 text-xs"
+                  className="h-7 md:h-8 px-2 md:px-3 text-xs text-black"
                 >
                   <Download className="h-3 w-3 md:h-4 md:w-4 sm:mr-1" />
                   <span className="hidden sm:inline">Download</span>
@@ -160,7 +160,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onRun, onClear, language, isExe
                   variant="outline" 
                   size="sm"
                   onClick={handleClearCode}
-                  className="h-7 md:h-8 px-2 md:px-3 text-xs"
+                  className="h-7 md:h-8 px-2 md:px-3 text-xs text-black"
                 >
                   <Trash2 className="h-3 w-3 md:h-4 md:w-4 sm:mr-1" />
                   <span className="hidden sm:inline">Clear</span>

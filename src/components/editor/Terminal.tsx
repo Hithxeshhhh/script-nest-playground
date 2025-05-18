@@ -79,8 +79,8 @@ const Terminal: React.FC<TerminalProps> = ({
                   onClick={onClear}
                   className="h-7 md:h-8 px-2 md:px-3 text-xs"
                 >
-                  <Trash2 className="h-3 w-3 md:h-4 md:w-4 mr-1" />
-                  <span className="hidden sm:inline">Clear Console</span>
+                  <Trash2 className="h-3 w-3 md:h-4 md:w-4 mr-1 text-black" />
+                  <span className="hidden sm:inline text-black">Clear Console</span>
                   <span className="sm:hidden">Clear</span>
                 </Button>
               </TooltipTrigger>
