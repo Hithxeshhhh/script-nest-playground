@@ -24,10 +24,10 @@ Visit [codebuddy.vercel.app]([https://codebuddy.vercel.app](https://script-nest-
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/codebuddy.git
+git clone [https://github.com/Hithxeshhhh/script-nest-playground.git]
 
 # Navigate to the project directory
-cd codebuddy
+cd script-nest-playground.git
 
 # Install dependencies
 npm install
@@ -36,7 +36,7 @@ npm install
 npm run dev
 ```
 
-Now open [http://localhost:3000](http://localhost:3000) in your browser to see the app.
+Now open [http://localhost:8000](http://localhost:8000) in your browser to see the app.
 
 ## 📖 How to Use
 
