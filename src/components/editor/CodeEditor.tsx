@@ -22,80 +22,11 @@ interface CodeEditorProps {
 }
 
 const getDefaultCode = (): string => {
-  return `// Welcome to CodeBuddy - A Modern JavaScript Playground!
+  return `// Welcome to CodeBuddy - JavaScript Playground
+// Write your code here and click Run Code to execute
 
-// 1. Basic Input/Output
-const name = prompt("What's your name?");
-console.log(\`Hello, \${name}! Let's explore JavaScript features.\`);
-
-// 2. Working with Arrays
-const numbers = [1, 2, 3, 4, 5];
-console.log('Original array:', numbers);
-
-// Using modern array methods
-const doubled = numbers.map(n => n * 2);
-console.log('Doubled numbers:', doubled);
-
-const sum = numbers.reduce((a, b) => a + b, 0);
-console.log('Sum of numbers:', sum);
-
-// 3. Async Operations
-async function fetchJoke() {
-  try {
-    console.log('Fetching a programming joke...');
-    const response = await fetch('https://v2.jokeapi.dev/joke/Programming?safe-mode');
-    const joke = await response.json();
-    
-    if (joke.type === 'single') {
-      console.log('Joke:', joke.joke);
-    } else {
-      console.log('Setup:', joke.setup);
-      console.log('Punchline:', joke.delivery);
-    }
-  } catch (error) {
-    console.error('Failed to fetch joke:', error.message);
-  }
-}
-
-// 4. Timer Example
-console.log('\\nStarting a timer...');
-let counter = 0;
-const timerId = setInterval(() => {
-  counter++;
-  console.log(\`Timer tick: \${counter}\`);
-  
-  if (counter >= 3) {
-    clearInterval(timerId);
-    console.log('Timer stopped!');
-    
-    // After timer, fetch a joke
-    fetchJoke();
-  }
-}, 1000);
-
-// 5. Error Handling
-try {
-  // Intentional error
-  const obj = null;
-  obj.nonexistent();
-} catch (error) {
-  console.error('Caught an error:', error.message);
-}
-
-// 6. Local Storage
-const visits = parseInt(localStorage.getItem('visits') || '0') + 1;
-localStorage.setItem('visits', visits.toString());
-console.log(\`You have run this code \${visits} time(s)!\`);
-
-// Try modifying this code or write your own!
-// Features available:
-// - Full ES6+ support
-// - Async/await
-// - Fetch API
-// - Timer functions
-// - Local Storage
-// - Console methods (log, error, warn, info)
-// - And much more!`;
+console.log("Hello, world!");
+`;
 };
 
 const CodeEditor: React.FC<CodeEditorProps> = ({ onRun, onClear, language, isExecuting = false }) => {
@@ -154,7 +85,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onRun, onClear, language, isExe
       });
     }
   };
-  
+
   const handleCopyCode = () => {
     navigator.clipboard.writeText(code)
       .then(() => {
@@ -173,28 +104,17 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onRun, onClear, language, isExe
         });
       });
   };
-  
-  const handleResetToDefault = () => {
-    if (confirm("Reset to default example code? This will replace your current code.")) {
-      setCode(getDefaultCode());
-      toast({
-        title: "Reset to default",
-        description: "Code has been reset to the default example",
-        duration: 2000,
-      });
-    }
-  };
 
   return (
     <div className="editor-container h-full flex flex-col rounded-lg overflow-hidden bg-editor-bg text-editor-text border border-border">
-      <div className="editor-toolbar p-3 bg-muted/30 flex justify-between items-center border-b border-border">
-        <div className="font-medium text-sm flex items-center">
-          <span className="bg-primary/20 text-primary px-2 py-0.5 rounded text-xs font-mono mr-2">
+      <div className="editor-toolbar p-2 md:p-3 bg-muted/30 flex justify-between items-center border-b border-border flex-shrink-0">
+        <div className="font-medium text-xs md:text-sm flex items-center">
+          <span className="bg-primary/20 text-yellow-200 px-1 md:px-2 py-0.5 rounded text-[10px] md:text-xs font-mono mr-2">
             JAVASCRIPT
           </span>
-          CodeBuddy Editor
+          <span className="hidden sm:inline">CodeBuddy Editor</span>
         </div>
-        <div className="space-x-2 flex items-center">
+        <div className="space-x-1 md:space-x-2 flex items-center flex-wrap">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -202,9 +122,10 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onRun, onClear, language, isExe
                   variant="outline" 
                   size="sm"
                   onClick={handleCopyCode}
+                  className="h-7 md:h-8 px-2 md:px-3 text-xs"
                 >
-                  <Copy className="h-4 w-4 mr-1" />
-                  Copy
+                  <Copy className="h-3 w-3 md:h-4 md:w-4 sm:mr-1" />
+                  <span className="hidden sm:inline">Copy</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -220,9 +141,10 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onRun, onClear, language, isExe
                   variant="outline" 
                   size="sm" 
                   onClick={handleSaveCode}
+                  className="h-7 md:h-8 px-2 md:px-3 text-xs"
                 >
-                  <Download className="h-4 w-4 mr-1" />
-                  Download
+                  <Download className="h-3 w-3 md:h-4 md:w-4 sm:mr-1" />
+                  <span className="hidden sm:inline">Download</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -238,9 +160,10 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onRun, onClear, language, isExe
                   variant="outline" 
                   size="sm"
                   onClick={handleClearCode}
+                  className="h-7 md:h-8 px-2 md:px-3 text-xs"
                 >
-                  <Trash2 className="h-4 w-4 mr-1" />
-                  Clear
+                  <Trash2 className="h-3 w-3 md:h-4 md:w-4 sm:mr-1" />
+                  <span className="hidden sm:inline">Clear</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -255,20 +178,22 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onRun, onClear, language, isExe
                 <Button 
                   onClick={handleRunCode} 
                   className={cn(
-                    "bg-secondary hover:bg-secondary/90 text-secondary-foreground",
+                    "bg-secondary hover:bg-secondary/90 text-secondary-foreground h-7 md:h-8 px-2 md:px-3 text-xs",
                     isExecuting && "animate-pulse bg-orange-600 hover:bg-orange-600"
                   )}
                   disabled={isExecuting}
                 >
                   {isExecuting ? (
                     <>
-                      <span className="mr-1 h-4 w-4 animate-spin">⟳</span>
-                      Running...
+                      <span className="mr-1 h-3 w-3 md:h-4 md:w-4 animate-spin">⟳</span>
+                      <span className="hidden sm:inline">Running...</span>
+                      <span className="sm:hidden">Run...</span>
                     </>
                   ) : (
                     <>
-                      <Play className="h-4 w-4 mr-1" />
-                      Run Code
+                      <Play className="h-3 w-3 md:h-4 md:w-4 sm:mr-1" />
+                      <span className="hidden sm:inline">Run Code</span>
+                      <span className="sm:hidden">Run</span>
                     </>
                   )}
                 </Button>
@@ -303,11 +228,9 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onRun, onClear, language, isExe
         />
       </div>
       
-      <div className="editor-footer p-2 bg-muted/10 border-t border-border flex justify-between text-xs text-muted-foreground">
+      <div className="editor-footer p-2 bg-muted/10 border-t border-border flex justify-between text-xs text-muted-foreground flex-shrink-0">
         <div>
-          <button onClick={handleResetToDefault} className="hover:text-primary transition-colors">
-            Reset to Example
-          </button>
+          {/* Reset button removed */}
         </div>
         <div>
           <span>JavaScript ES6 • Auto-save enabled</span>

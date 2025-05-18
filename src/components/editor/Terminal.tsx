@@ -57,11 +57,11 @@ const Terminal: React.FC<TerminalProps> = ({
   return (
     <div className="terminal-container h-full flex flex-col rounded-lg overflow-hidden bg-terminal-bg text-terminal-text border border-border">
       <div className={cn(
-        "terminal-toolbar p-3 flex justify-between items-center border-b border-border",
+        "terminal-toolbar p-2 md:p-3 flex justify-between items-center border-b border-border",
         waitingForInput ? "bg-yellow-500/20" : "bg-muted/30"
       )}>
-        <div className="font-medium text-sm flex items-center">
-          <TerminalIcon className="h-4 w-4 mr-2" />
+        <div className="font-medium text-xs md:text-sm flex items-center">
+          <TerminalIcon className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
           Console Output
           {waitingForInput && (
             <span className="ml-2 text-xs bg-yellow-500 text-black px-2 py-0.5 rounded-full animate-pulse">
@@ -77,9 +77,11 @@ const Terminal: React.FC<TerminalProps> = ({
                   variant="outline"
                   size="sm"
                   onClick={onClear}
+                  className="h-7 md:h-8 px-2 md:px-3 text-xs"
                 >
-                  <Trash2 className="h-4 w-4 mr-1" />
-                  Clear Console
+                  <Trash2 className="h-3 w-3 md:h-4 md:w-4 mr-1" />
+                  <span className="hidden sm:inline">Clear Console</span>
+                  <span className="sm:hidden">Clear</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -93,43 +95,46 @@ const Terminal: React.FC<TerminalProps> = ({
       <div 
         ref={outputContainerRef}
         className={cn(
-          "terminal-output-container flex-1 p-3 overflow-auto text-sm",
+          "terminal-output-container flex-1 p-2 md:p-3 overflow-y-auto overflow-x-auto text-xs md:text-sm max-h-[calc(100%-50px)]",
           waitingForInput && "border-l-4 border-yellow-500"
         )}
+        style={{ scrollbarWidth: 'thin', scrollbarColor: '#4a5568 #2d3748' }}
       >
-        {output.map((line, index) => {
-          // Check if line is an error message
-          const isError = line.includes("Error") || line.includes("error");
-          // Check if line is a system/prompt message (starts with '>')
-          const isPrompt = line.startsWith(">") && !line.includes("Program completed");
-          // Check if line is a success message
-          const isSuccess = line.includes("> Program completed");
-          // Check if it's user input (starts with "«")
-          const isUserInput = line.startsWith("«");
-          // Check if it's an input saved message
-          const isInputSaved = line.includes("Input saved:");
-          // Check if it's debug output we want to hide
-          const isDebug = line.includes("DEBUG:");
-          
-          if (isDebug) return null; // Skip debug messages in output
-          
-          return (
-            <div 
-              key={index} 
-              className={cn(
-                "terminal-line mb-1 font-mono",
-                isError ? "text-terminal-error" : 
-                isPrompt ? "text-terminal-highlight font-bold" : 
-                isSuccess ? "text-green-500" :
-                isUserInput ? "text-cyan-400 font-semibold bg-cyan-500/10 px-2 py-1 rounded" :
-                isInputSaved ? "text-blue-400 italic" :
-                "text-terminal-text"
-              )}
-            >
-              {line}
-            </div>
-          );
-        })}
+        <div className="terminal-content">
+          {output.map((line, index) => {
+            // Check if line is an error message
+            const isError = line.includes("Error") || line.includes("error");
+            // Check if line is a system/prompt message (starts with '>')
+            const isPrompt = line.startsWith(">") && !line.includes("Program completed");
+            // Check if line is a success message
+            const isSuccess = line.includes("> Program completed");
+            // Check if it's user input (starts with "«")
+            const isUserInput = line.startsWith("«");
+            // Check if it's an input saved message
+            const isInputSaved = line.includes("Input saved:");
+            // Check if it's debug output we want to hide
+            const isDebug = line.includes("DEBUG:");
+            
+            if (isDebug) return null; // Skip debug messages in output
+            
+            return (
+              <div 
+                key={index} 
+                className={cn(
+                  "terminal-line mb-1 font-mono",
+                  isError ? "text-terminal-error" : 
+                  isPrompt ? "text-terminal-highlight font-bold" : 
+                  isSuccess ? "text-green-500" :
+                  isUserInput ? "text-cyan-400 font-semibold bg-cyan-500/10 px-2 py-1 rounded" :
+                  isInputSaved ? "text-blue-400 italic" :
+                  "text-terminal-text"
+                )}
+              >
+                {line}
+              </div>
+            );
+          })}
+        </div>
         
         {waitingForInput && (
           <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-md p-3 mt-2 animate-pulse">
@@ -139,16 +144,16 @@ const Terminal: React.FC<TerminalProps> = ({
                 Input Required:
               </div>
               <div className="flex items-center">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
+            <input
+              ref={inputRef}
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={handleKeyDown}
                   className="terminal-input flex-1 bg-transparent border border-yellow-500/50 outline-none text-white focus:ring-2 focus:ring-yellow-500/70 px-3 py-2 rounded text-base"
                   placeholder="Type your input here and press Enter..."
-                  autoFocus
-                />
+              autoFocus
+            />
                 <button 
                   type="submit" 
                   className="ml-2 px-4 py-2 bg-yellow-500/80 text-black rounded hover:bg-yellow-500 transition-colors font-medium"
@@ -157,7 +162,7 @@ const Terminal: React.FC<TerminalProps> = ({
                   Submit
                 </button>
               </div>
-            </form>
+          </form>
           </div>
         )}
       </div>

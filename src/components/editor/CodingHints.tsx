@@ -130,26 +130,26 @@ const CodingHints: React.FC<CodingHintsProps> = ({ language }) => {
 
   return (
     <Card className="h-full overflow-hidden">
-      <CardHeader className="bg-primary/10 pb-3">
+      <CardHeader className="bg-primary/10 pb-3 pt-3">
         <CardTitle className="flex items-center text-sm">
           <Lightbulb className="h-4 w-4 mr-2 text-primary" />
           JavaScript Tips
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-4 text-sm">
+      <CardContent className="pt-3 pb-0 overflow-y-auto h-[calc(100%-78px)]">
         {currentHint && (
           <>
-            <h3 className="font-medium mb-2">{currentHint.title}</h3>
-            <div className="prose prose-sm">{currentHint.content}</div>
+            <h3 className="font-medium mb-2 text-sm">{currentHint.title}</h3>
+            <div className="prose prose-sm text-xs space-y-2">{currentHint.content}</div>
           </>
         )}
       </CardContent>
-      <CardFooter className="border-t pt-3 pb-3">
+      <CardFooter className="border-t pt-2 pb-2 mt-auto">
         <Button 
           variant="outline" 
           size="sm" 
           onClick={getRandomHint} 
-          className="w-full"
+          className="w-full h-8"
         >
           Next Tip
         </Button>
